@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════
+# STIMME — .gitignore
+# ═══════════════════════════════════════
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+env/
+venv/
+.venv/
+.env
+
+# ── ML Models & Data ──
+backend/data/
+*.db
+*.sqlite3
+*.pkl
+*.keras
+*.h5
+*.tflite
+*.safetensors
+*.ckpt
+*.pb
+
+# ── Node.js / Next.js ──
+landing/node_modules/
+landing/.next/
+landing/out/
+landing/build/
+node_modules/
+.npm
+*.log
+npm-debug.log*
+
+# ── System Files ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# ── IDE ──
+.vscode/
+.idea/
+*.code-workspace
+
+# ── Temp/Helper Files ──
+check_css.js
+fix_node_path.ps1
+upload_to_github.bat
+antigravity-claude-proxy/
+
+# ── Binary Reports (keep markdown version) ──
+*.docx
+*.pdf

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Stimme — AI-powered audio identification and classification system. Upload or record audio to instantly identify sounds using deep learning.">
+    <title>Stimme — AI Audio Identifier</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+</head>
+
+<body>
+
+    <!-- ═══ NAVIGATION ═══ -->
+    <nav class="main-nav">
+        <div class="nav-inner">
+            <a href="#" class="nav-brand" onclick="return false;">
+                <div class="brand-icon">🎵</div>
+                <div>
+                    <div class="brand-text">STIMME</div>
+                    <div class="brand-tag">AI Audio Identifier</div>
+                </div>
+            </a>
+
+            <ul class="nav-links">
+                <li><button class="nav-link active" data-page="identify"><span class="icon">🎯</span> Identify</button>
+                </li>
+                <li><button class="nav-link" data-page="analyze"><span class="icon">🔬</span> Analyze</button></li>
+                <li><button class="nav-link" data-page="intelligence"><span class="icon">🛡️</span> Intel</button></li>
+                <li><button class="nav-link" data-page="classes"><span class="icon">📂</span> Classes</button></li>
+                <li><button class="nav-link" data-page="train"><span class="icon">🧠</span> Train</button></li>
+                <li><button class="nav-link" data-page="models"><span class="icon">⚡</span> Models</button></li>
+                <li><button class="nav-link" data-page="history"><span class="icon">📊</span> History</button></li>
+            </ul>
+
+            <div class="nav-status">
+                <div class="status-dot"></div>
+                <span class="status-text" id="modelStatus">Loading model...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══ SVG DEFS ═══ -->
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <linearGradient id="confidenceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7c3aed" />
+                <stop offset="100%" style="stop-color:#06d6a0" />
+            </linearGradient>
+            <linearGradient id="waveformGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#a78bfa" />
+                <stop offset="100%" style="stop-color:#7c3aed" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <div class="app-container">
+
+        <!-- ═══ IDENTIFY PAGE ═══ -->
+        <section id="page-identify" class="page-section active">
+            <div class="section-header">
+                <h1 class="section-title">🎯 Identify Sound</h1>
+                <p class="section-subtitle">Upload an audio file or record live to instantly identify the sound</p>
+            </div>
+
+            <div class="identify-layout">
+                <!-- Left: Input -->
+                <div>
+                    <!-- Upload Zone -->
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="audioFileInput" accept="audio/*" hidden>
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-title">Drop audio file here or click to browse</div>
+                        <div class="upload-subtitle">Supports all major audio formats</div>
+                        <div class="upload-formats">
+                            <span class="format-badge">WAV</span>
+                            <span class="format-badge">MP3</span>
+                            <span class="format-badge">OGG</span>
+                            <span class="format-badge">FLAC</span>
+                            <span class="format-badge">WEBM</span>
+                        </div>
+                    </div>
+
+                    <div class="divider-or">or record live</div>
+
+                    <!-- Record Section -->
+                    <div class="record-section">
+                        <button class="record-btn" id="recordBtn" title="Click to start recording">
+                            🎙️
+                        </button>
+                        <div class="record-label" id="recordLabel">Click to record</div>
+                        <div class="record-timer" id="recordTimer">00:00</div>
+                    </div>
+
+                    <!-- Audio Preview -->
+                    <div class="audio-preview" id="audioPreview">
+                        <div class="audio-file-info" id="audioFileInfo">
+                            <div class="audio-file-icon">🎵</div>
+                            <div class="audio-file-details">
+                                <div class="audio-file-name" id="audioFileName">audio.wav</div>
+                                <div class="audio-file-meta" id="audioFileMeta">—</div>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" id="clearAudioBtn">✕ Clear</button>
+                        </div>
+
+                        <div class="waveform-container">
+                            <canvas class="waveform-canvas" id="waveformCanvas"></canvas>
+                            <canvas class="spectrogram-canvas" id="spectrogramCanvas"></canvas>
+                        </div>
+
+                        <div class="identify-btn-container">
+                            <button class="identify-btn" id="identifyBtn" disabled>
+                                🎯 Identify Sound
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Results -->
+                <div>
+                    <div class="results-panel" id="resultsPanel">
+                        <div class="result-header">
+                            <h2 style="font-weight:700; font-size:1.2rem;">Identification Results</h2>
+                            <div class="result-status success" id="resultStatus">
+                                <span>✓</span> <span id="resultStatusText">Identified</span>
+                            </div>
+                        </div>
+
+                        <!-- Top Prediction -->
+                        <div class="top-prediction" id="topPrediction">
+                            <div class="confidence-meter" id="confidenceMeter">
+                                <svg viewBox="0 0 110 110">
+                                    <circle class="meter-bg" cx="55" cy="55" r="50" />
+                                    <circle class="meter-fill" id="meterFill" cx="55" cy="55" r="50" />
+                                </svg>
+                                <div class="confidence-value" id="confidenceValue">0%</div>
+                            </div>
+                            <div class="prediction-icon" id="predictionIcon">🔊</div>
+                            <div class="prediction-class" id="predictionClass">Ready to identify</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);" id="predictionModel">—</div>
+                        </div>
+
+                        <!-- All Predictions -->
+                        <h3
+                            style="font-size:0.9rem; font-weight:600; margin-bottom:var(--space-sm); color:var(--text-secondary);">
+                            All Predictions</h3>
+                        <div class="predictions-list" id="predictionsList"></div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="identifyEmpty">
+                        <div class="empty-icon">🎧</div>
+                        <div class="empty-title">Ready to identify</div>
+                        <div class="empty-desc">Upload an audio file or record live to get started</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ ANALYZE PAGE ═══ -->
+        <section id="page-analyze" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title">🔬 Frequency Spectrum Analyzer</h1>
+                <p class="section-subtitle">Upload any audio file for deep spectral analysis with real-time
+                    visualizations</p>
+            </div>
+
+            <!-- Upload Zone -->
+            <div class="analyze-upload-zone" id="analyzeUploadZone">
+                <input type="file" id="analyzeFileInput" accept="audio/*" hidden>
+                <div class="upload-icon">📡</div>
+                <div class="upload-title">Drop audio file here for spectral analysis</div>
+                <div class="upload-subtitle">WAV • MP3 • OGG • FLAC • WEBM</div>
+            </div>
+
+            <!-- Analysis Content (hidden until file loaded) -->
+            <div class="analyze-content" id="analyzeContent">
+                <!-- Audio Info Bar -->
+                <div class="analyze-info-bar" id="analyzeInfoBar">
+                    <div class="info-chip"><span>📄</span> <span id="azFileName">—</span></div>
+                    <div class="info-chip"><span>⏱️</span> <span id="azDuration">—</span></div>
+                    <div class="info-chip"><span>📻</span> <span id="azSampleRate">—</span></div>
+                    <div class="info-chip"><span>🎵</span> Dominant: <span id="azDominantFreq">—</span></div>
+                    <div class="info-chip"><span>📊</span> Centroid: <span id="azCentroid">—</span></div>
+                    <button class="btn btn-ghost btn-sm" id="clearAnalyzeBtn">✕ Clear</button>
+                </div>
+
+                <div class="analyze-layout">
+                    <!-- Left Column: Visualizations -->
+                    <div class="analyze-viz-col">
+                        <!-- Playback Controls -->
+                        <div class="playback-controls glass-card">
+                            <button class="play-btn" id="azPlayBtn" title="Play/Pause">▶️</button>
+                            <div class="seek-container">
+                                <input type="range" class="seek-bar" id="azSeekBar" min="0" max="100" value="0">
+                                <div class="seek-time"><span id="azCurrentTime">0:00</span> / <span
+                                        id="azTotalTime">0:00</span></div>
+                            </div>
+                            <div class="volume-container">
+                                <span>🔊</span>
+                                <input type="range" class="volume-bar" id="azVolumeBar" min="0" max="100" value="80">
+                            </div>
+                        </div>
+
+                        <!-- Real-Time FFT Spectrum -->
+                        <div class="viz-card glass-card">
+                            <div class="viz-header">
+                                <h3>⚡ Real-Time Frequency Spectrum</h3>
+                                <span class="viz-badge live" id="azLiveBadge">LIVE</span>
+                            </div>
+                            <canvas id="fftCanvas" class="viz-canvas fft-canvas"></canvas>
+                        </div>
+
+                        <!-- Spectrogram Heatmap -->
+                        <div class="viz-card glass-card">
+                            <div class="viz-header">
+                                <h3>🌈 Spectrogram Heatmap</h3>
+                            </div>
+                            <canvas id="heatmapCanvas" class="viz-canvas heatmap-canvas"></canvas>
+                        </div>
+
+                        <!-- Waveform -->
+                        <div class="viz-card glass-card">
+                            <div class="viz-header">
+                                <h3>〰️ Waveform</h3>
+                            </div>
+                            <canvas id="azWaveformCanvas" class="viz-canvas waveform-az-canvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Band Analysis -->
+                    <div class="analyze-info-col">
+                        <!-- Frequency Bands -->
+                        <div class="glass-card">
+                            <div class="card-body">
+                                <h3 style="font-weight:700; margin-bottom:var(--space-md);">📊 Frequency Bands</h3>
+                                <div class="freq-bands" id="freqBands">
+                                    <div class="freq-band" data-band="sub_bass">
+                                        <div class="band-label">Sub-Bass <span class="band-range">20-60Hz</span></div>
+                                        <div class="band-meter">
+                                            <div class="band-meter-fill sub-bass" id="band_sub_bass"></div>
+                                        </div>
+                                        <div class="band-db" id="db_sub_bass">—</div>
+                                    </div>
+                                    <div class="freq-band" data-band="bass">
+                                        <div class="band-label">Bass <span class="band-range">60-250Hz</span></div>
+                                        <div class="band-meter">
+                                            <div class="band-meter-fill bass" id="band_bass"></div>
+                                        </div>
+                                        <div class="band-db" id="db_bass">—</div>
+                                    </div>
+                                    <div class="freq-band" data-band="low_mid">
+                                        <div class="band-label">Low-Mid <span class="band-range">250-500Hz</span></div>
+                                        <div class="band-meter">
+                                            <div class="band-meter-fill low-mid" id="band_low_mid"></div>
+                                        </div>
+                                        <div class="band-db" id="db_low_mid">—</div>
+                                    </div>
+                                    <div class="freq-band" data-band="mid">
+                                        <div class="band-label">Mid <span class="band-range">500-2kHz</span></div>
+                                        <div class="band-meter">
+                                            <div class="band-meter-fill mid" id="band_mid"></div>
+                                        </div>
+                                        <div class="band-db" id="db_mid">—</div>
+                                    </div>
+                                    <div class="freq-band" data-band="upper_mid">
+                                        <div class="band-label">Upper-Mid <span class="band-range">2k-4kHz</span></div>
+                                        <div class="band-meter">
+                                            <div class="band-meter-fill upper-mid" id="band_upper_mid"></div>
+                                        </div>
+                                        <div class="band-db" id="db_upper_mid">—</div>
+                                    </div>
+                                    <div class="freq-band" data-band="presence">
+                                        <div class="band-label">Presence <span class="band-range">4k-6kHz</span></div>
+                                        <div class="band-meter">
+                                            <div class="band-meter-fill presence" id="band_presence"></div>
+                                        </div>
+                                        <div class="band-db" id="db_presence">—</div>
+                                    </div>
+                                    <div class="freq-band" data-band="brilliance">
+                                        <div class="band-label">Brilliance <span class="band-range">6k-20kHz</span>
+                                        </div>
+                                        <div class="band-meter">
+                                            <div class="band-meter-fill brilliance" id="band_brilliance"></div>
+                                        </div>
+                                        <div class="band-db" id="db_brilliance">—</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spectral Features -->
+                        <div class="glass-card">
+                            <div class="card-body">
+                                <h3 style="font-weight:700; margin-bottom:var(--space-md);">🔎 Spectral Features</h3>
+                                <div class="spectral-stats">
+                                    <div class="spectral-stat"><span class="stat-label">Spectral Centroid</span><span
+                                            class="stat-value" id="azStatCentroid">—</span></div>
+                                    <div class="spectral-stat"><span class="stat-label">Spectral Rolloff</span><span
+                                            class="stat-value" id="azStatRolloff">—</span></div>
+                                    <div class="spectral-stat"><span class="stat-label">Spectral Flatness</span><span
+                                            class="stat-value" id="azStatFlatness">—</span></div>
+                                    <div class="spectral-stat"><span class="stat-label">Dominant Freq</span><span
+                                            class="stat-value" id="azStatDominant">—</span></div>
+                                    <div class="spectral-stat"><span class="stat-label">RMS Level</span><span
+                                            class="stat-value" id="azStatRMS">—</span></div>
+                                    <div class="spectral-stat"><span class="stat-label">Peak Level</span><span
+                                            class="stat-value" id="azStatPeak">—</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ INTELLIGENCE PAGE ═══ -->
+        <section id="page-intelligence" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title">🛡️ Audio Intelligence Suite</h1>
+                <p class="section-subtitle">Advanced audio forensics, speaker analysis, steganography detection, threat
+                    detection & enhancement</p>
+            </div>
+
+            <!-- Intel Sub-tabs -->
+            <div class="intel-tabs" id="intelTabs">
+                <button class="intel-tab active" data-intel="forensics">🔍 Forensics</button>
+                <button class="intel-tab" data-intel="speakers">🎭 Speakers</button>
+                <button class="intel-tab" data-intel="steg">🔐 Steganography</button>
+                <button class="intel-tab" data-intel="threats">💥 Threats</button>
+                <button class="intel-tab" data-intel="enhance">🧹 Enhance</button>
+            </div>
+
+            <!-- Intel Upload Zone -->
+            <div class="intel-upload-zone" id="intelUploadZone">
+                <input type="file" id="intelFileInput" accept="audio/*" hidden>
+                <div class="upload-icon">🛡️</div>
+                <div class="upload-title">Drop audio file for intelligence analysis</div>
+                <div class="upload-subtitle">All processing is 100% local — no data leaves your system</div>
+            </div>
+
+            <!-- Intel Processing Indicator -->
+            <div class="intel-processing" id="intelProcessing">
+                <div class="processing-spinner"></div>
+                <div class="processing-text" id="intelProcessingText">Analyzing audio...</div>
+            </div>
+
+            <!-- ── Forensics Panel ── -->
+            <div class="intel-panel" id="panel-forensics">
+                <div class="forensics-verdict glass-card" id="forensicsVerdict">
+                    <div class="verdict-icon" id="forensicsVerdictIcon">🔍</div>
+                    <div class="verdict-text" id="forensicsVerdictText">—</div>
+                    <div class="verdict-score">
+                        <div class="verdict-score-label">Tampering Probability</div>
+                        <div class="verdict-score-value" id="forensicsScore">0%</div>
+                    </div>
+                </div>
+                <div class="forensics-grid" id="forensicsGrid"></div>
+            </div>
+
+            <!-- ── Speakers Panel ── -->
+            <div class="intel-panel" id="panel-speakers">
+                <div class="speakers-summary glass-card" id="speakersSummary">
+                    <div class="speakers-count" id="speakersCount">0</div>
+                    <div class="speakers-label">Speakers Detected</div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-body">
+                        <h3 style="font-weight:700;margin-bottom:var(--space-md);">Speaker Timeline</h3>
+                        <div class="speaker-timeline" id="speakerTimeline"></div>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-body">
+                        <h3 style="font-weight:700;margin-bottom:var(--space-md);">Speaking Time</h3>
+                        <div class="speaker-stats" id="speakerStats"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Steganography Panel ── -->
+            <div class="intel-panel" id="panel-steg">
+                <div class="steg-verdict glass-card" id="stegVerdict">
+                    <div class="verdict-icon" id="stegVerdictIcon">🔐</div>
+                    <div class="verdict-text" id="stegVerdictText">—</div>
+                    <div class="verdict-score">
+                        <div class="verdict-score-label">Steganography Probability</div>
+                        <div class="verdict-score-value" id="stegScore">0%</div>
+                    </div>
+                </div>
+                <div class="steg-grid" id="stegGrid"></div>
+            </div>
+
+            <!-- ── Threats Panel ── -->
+            <div class="intel-panel" id="panel-threats">
+                <div class="threat-level-card glass-card" id="threatLevelCard">
+                    <div class="threat-level-icon" id="threatLevelIcon">✅</div>
+                    <div class="threat-level-text" id="threatLevelText">CLEAR</div>
+                    <div class="threat-level-count"><span id="threatEventCount">0</span> events detected</div>
+                </div>
+                <div class="threat-events" id="threatEvents"></div>
+            </div>
+
+            <!-- ── Enhance Panel ── -->
+            <div class="intel-panel" id="panel-enhance">
+                <div class="enhance-metrics glass-card" id="enhanceMetrics">
+                    <div class="enhance-metric">
+                        <div class="metric-label">Before SNR</div>
+                        <div class="metric-value" id="enhBeforeSNR">—</div>
+                    </div>
+                    <div class="enhance-metric improve">
+                        <div class="metric-label">After SNR</div>
+                        <div class="metric-value" id="enhAfterSNR">—</div>
+                    </div>
+                    <div class="enhance-metric">
+                        <div class="metric-label">Improvement</div>
+                        <div class="metric-value accent" id="enhImprovement">—</div>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-body">
+                        <h3 style="font-weight:700;margin-bottom:var(--space-md);">Before vs After</h3>
+                        <div class="enhance-comparison">
+                            <div>
+                                <div class="enhance-label">Original</div><canvas id="enhBeforeCanvas"
+                                    class="enhance-canvas"></canvas>
+                            </div>
+                            <div>
+                                <div class="enhance-label">Enhanced</div><canvas id="enhAfterCanvas"
+                                    class="enhance-canvas"></canvas>
+                            </div>
+                        </div>
+                        <div style="text-align:center;margin-top:var(--space-lg);">
+                            <button class="btn btn-accent" id="downloadEnhancedBtn" style="display:none;">⬇️ Download
+                                Enhanced Audio</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ CLASSES PAGE ═══ -->
+        <section id="page-classes" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title">📂 Sound Classes</h1>
+                <p class="section-subtitle">Manage sound categories and their audio sample databases</p>
+            </div>
+
+            <!-- Classes View -->
+            <div id="classesView">
+                <div class="classes-toolbar">
+                    <div class="search-wrapper">
+                        <input type="text" class="search-input" id="classSearch" placeholder="Search classes...">
+                    </div>
+                    <button class="btn btn-primary" id="createClassBtn">➕ Create Class</button>
+                </div>
+
+                <div class="category-tabs" id="categoryTabs">
+                    <button class="category-tab active" data-category="all">All</button>
+                </div>
+
+                <div class="classes-grid" id="classesGrid"></div>
+            </div>
+
+            <!-- Class Detail -->
+            <div class="class-detail-panel" id="classDetailPanel">
+                <div class="class-detail-header">
+                    <div class="class-detail-info">
+                        <button class="btn btn-ghost btn-sm" id="backToClassesBtn">← Back</button>
+                        <span class="class-detail-icon" id="detailIcon">🔊</span>
+                        <div>
+                            <h2 style="font-weight:700;" id="detailName">Class Name</h2>
+                            <span style="font-size:0.8rem; color:var(--text-muted);" id="detailCategory">Category</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:var(--space-sm);">
+                        <button class="btn btn-danger btn-sm" id="deleteClassBtn">🗑️ Delete</button>
+                    </div>
+                </div>
+
+                <div class="sample-upload-zone" id="sampleUploadZone">
+                    <input type="file" id="sampleFileInput" accept="audio/*" multiple hidden>
+                    <div style="font-size:1.5rem; margin-bottom:8px;">📤</div>
+                    <div style="font-weight:600;">Drop audio samples here or click to upload</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Upload multiple files at
+                        once to build your training dataset</div>
+                </div>
+
+                <h3 style="font-size:0.95rem; font-weight:600; margin-bottom:var(--space-md);">
+                    Audio Samples (<span id="sampleCount">0</span>)
+                </h3>
+                <div class="samples-list" id="samplesList"></div>
+            </div>
+        </section>
+
+        <!-- ═══ TRAIN PAGE ═══ -->
+        <section id="page-train" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title">🧠 Train Model</h1>
+                <p class="section-subtitle">Select classes and an architecture to train a custom classification model
+                </p>
+            </div>
+
+            <div class="training-layout">
+                <div class="training-config glass-card">
+                    <div class="card-body">
+                        <h3 style="font-weight:700; margin-bottom:var(--space-md);">1. Select Classes</h3>
+                        <div class="class-selector" id="trainClassSelector"></div>
+
+                        <h3 style="font-weight:700; margin-bottom:var(--space-md);">2. Choose Architecture</h3>
+                        <div class="arch-selector" id="archSelector"></div>
+
+                        <div class="form-group">
+                            <label class="form-label">Model Name (optional)</label>
+                            <input type="text" class="form-input" id="trainModelName"
+                                placeholder="Auto-generated if empty">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Epochs</label>
+                            <input type="number" class="form-input" id="trainEpochs" value="30" min="5" max="200">
+                        </div>
+
+                        <button class="btn btn-accent btn-lg" id="startTrainingBtn"
+                            style="width:100%; margin-top:var(--space-md);">
+                            🚀 Start Training
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="training-progress glass-card" id="trainingProgress">
+                        <div class="card-body">
+                            <h3 style="font-weight:700; margin-bottom:var(--space-md);">Training Progress</h3>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="trainProgressBar" style="width:0%"></div>
+                            </div>
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:var(--space-md);"
+                                id="trainMessage">Preparing...</p>
+                            <div class="progress-stats">
+                                <div class="progress-stat">
+                                    <div class="stat-value" id="trainEpochStat">0/0</div>
+                                    <div class="stat-label">Epoch</div>
+                                </div>
+                                <div class="progress-stat">
+                                    <div class="stat-value" id="trainAccStat">0%</div>
+                                    <div class="stat-label">Accuracy</div>
+                                </div>
+                                <div class="progress-stat">
+                                    <div class="stat-value" id="trainValAccStat">0%</div>
+                                    <div class="stat-label">Val Accuracy</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="empty-state" id="trainEmpty">
+                        <div class="empty-icon">🧠</div>
+                        <div class="empty-title">Configure Training</div>
+                        <div class="empty-desc">Select classes with audio samples and pick a model architecture to begin
+                            training</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ MODELS PAGE ═══ -->
+        <section id="page-models" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title">⚡ Models</h1>
+                <p class="section-subtitle">View available models and select which one to use for classification</p>
+            </div>
+            <div class="models-grid" id="modelsGrid"></div>
+        </section>
+
+        <!-- ═══ HISTORY PAGE ═══ -->
+        <section id="page-history" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title">📊 History</h1>
+                <p class="section-subtitle">Recent classification results and their details</p>
+            </div>
+            <div class="glass-card">
+                <div class="card-body" style="overflow-x:auto;">
+                    <table class="history-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Source</th>
+                                <th>Filename</th>
+                                <th>Prediction</th>
+                                <th>Confidence</th>
+                                <th>Model</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="historyEmpty">
+                        <div class="empty-icon">📊</div>
+                        <div class="empty-title">No history yet</div>
+                        <div class="empty-desc">Classify some audio to see results here</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ═══ CREATE CLASS MODAL ═══ -->
+    <div class="modal-overlay" id="createClassModal">
+        <div class="modal">
+            <h2 class="modal-title">➕ Create New Sound Class</h2>
+            <div class="form-group">
+                <label class="form-label">Class Name</label>
+                <input type="text" class="form-input" id="newClassName" placeholder="e.g., Dog Bark">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="newClassCategory">
+                    <option value="Birds">🐦 Birds</option>
+                    <option value="Vehicles">🚗 Vehicles</option>
+                    <option value="Weather">🌧️ Weather</option>
+                    <option value="Music">🎵 Music</option>
+                    <option value="Human">🗣️ Human</option>
+                    <option value="Nature">🌿 Nature</option>
+                    <option value="Urban">🏙️ Urban</option>
+                    <option value="Custom">⚡ Custom</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea" id="newClassDesc" placeholder="Optional description..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="cancelCreateClass">Cancel</button>
+                <button class="btn btn-primary" id="confirmCreateClass">Create Class</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TOAST CONTAINER ═══ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ═══ CHATBOT ═══ -->
+    <!-- Floating Toggle Button -->
+    <button class="chatbot-toggle" id="chatbotToggle" title="Open Stimme Guide">
+        <span class="toggle-icon">💬</span>
+    </button>
+
+    <!-- Chat Window -->
+    <div class="chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header">
+            <div class="chatbot-header-info">
+                <div class="chatbot-avatar">🤖</div>
+                <div class="chatbot-header-text">
+                    <h3>Stimme Guide</h3>
+                    <span>● Online — Ask me anything</span>
+                </div>
+            </div>
+            <div class="chatbot-header-actions">
+                <button id="chatbotMinimize" title="Minimize">─</button>
+                <button id="chatbotClose" title="Close">✕</button>
+            </div>
+        </div>
+
+        <div class="chatbot-messages" id="chatMessages">
+            <!-- Messages appear here -->
+        </div>
+
+        <div class="chatbot-input-area">
+            <input type="text" id="chatInput" placeholder="Ask about any feature..."
+                autocomplete="off">
+            <button class="chat-send-btn" id="chatSendBtn" title="Send">➤</button>
+        </div>
+    </div>
+
+    <!-- ═══ SCRIPTS ═══ -->
+    <script src="/js/app.js"></script>
+    <script src="/js/chatbot.js"></script>
+</body>
+
+</html>

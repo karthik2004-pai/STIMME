@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+tensorflow
+tensorflow-hub
+librosa
+soundfile
+numpy
+scipy
+scikit-learn
+sqlalchemy
+pydantic
+python-multipart
+aiofiles
+pydub
