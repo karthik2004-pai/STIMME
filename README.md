@@ -1,5 +1,9 @@
 <div align="center">
 
+<img src=".github/assets/banner.png" alt="Stimme Banner" width="100%">
+
+<br><br>
+
 # 🎵 STIMME
 
 ### AI Audio Intelligence Suite
@@ -8,7 +12,9 @@
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://tensorflow.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-15-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![License](https://img.shields.io/badge/License-MIT-7c3aed?style=for-the-badge)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/karthik2004-pai/Stimme?style=for-the-badge&color=fbbf24)](https://github.com/karthik2004-pai/Stimme)
 
 **A production-grade, fully offline AI audio intelligence platform built with deep learning.**  
 *Real-time sound classification · Frequency spectrum analysis · Audio forensics · Speaker diarization · Steganography detection · Acoustic threat detection · Audio enhancement · Custom model training*
@@ -18,6 +24,27 @@
 ---
 
 </div>
+
+## 📸 Screenshots
+
+<div align="center">
+
+### 🏠 Landing Page — Apple-inspired Hero
+<img src=".github/assets/landing-hero.png" alt="Stimme Landing Page" width="100%" style="border-radius: 12px; margin-bottom: 16px;">
+
+<br>
+
+### ✨ Feature Showcase — Bento Grid
+<img src=".github/assets/features-grid.png" alt="Stimme Features" width="100%" style="border-radius: 12px; margin-bottom: 16px;">
+
+<br>
+
+### 🎯 App Dashboard — Sound Identification
+<img src=".github/assets/app-dashboard.png" alt="Stimme App Dashboard" width="100%" style="border-radius: 12px;">
+
+</div>
+
+---
 
 ## 🔥 Highlights
 
